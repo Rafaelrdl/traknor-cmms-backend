@@ -34,6 +34,7 @@ PROBLEM_TYPE_MAP = {
     status.HTTP_404_NOT_FOUND: PROBLEM_BASE + "not-found",
     status.HTTP_409_CONFLICT: PROBLEM_BASE + "conflict",
     status.HTTP_422_UNPROCESSABLE_ENTITY: PROBLEM_BASE + "validation-error",
+    status.HTTP_429_TOO_MANY_REQUESTS: PROBLEM_BASE + "too-many-requests",
     status.HTTP_500_INTERNAL_SERVER_ERROR: PROBLEM_BASE + "internal-error",
 }
 
@@ -53,6 +54,18 @@ def problem_exception_handler(exc: Exception, context: Dict[str, Any]) -> Respon
             "errors": errors,
         }
         response = Response(data, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+    elif isinstance(exc, exceptions.Throttled):
+        # Limite de requisições atingido
+        data = {
+            "type": PROBLEM_TYPE_MAP[status.HTTP_429_TOO_MANY_REQUESTS],
+            "title": "Too Many Requests",
+            "status": status.HTTP_429_TOO_MANY_REQUESTS,
+            "detail": str(exc.detail),
+            "instance": request.get_full_path() if request else "",
+        }
+        if exc.wait is not None:
+            data["retry_after"] = exc.wait
+        response = Response(data, status=status.HTTP_429_TOO_MANY_REQUESTS)
     else:
         response = drf_exception_handler(exc, context)
         status_code = response.status_code if response else status.HTTP_500_INTERNAL_SERVER_ERROR
