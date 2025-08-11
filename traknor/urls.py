@@ -22,6 +22,7 @@ from rest_framework.routers import SimpleRouter
 from .views import LoginView, health, trigger_error
 from sample.api import ExampleViewSet
 from django.conf import settings
+from accounts.api import MeView
 
 router = SimpleRouter()
 router.register("_example", ExampleViewSet, basename="example")
@@ -36,6 +37,7 @@ urlpatterns = [
     path("health", health, name="health"),
     path("_error", trigger_error, name="_error"),
     path("auth/login", LoginView.as_view(), name="auth-login"),
+    path("users/me", MeView.as_view(), name="users-me"),
 ]
 
 urlpatterns += router.urls
