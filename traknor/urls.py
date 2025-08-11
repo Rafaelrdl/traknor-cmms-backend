@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import health, trigger_error
+from .views import LoginView, health, trigger_error
 from sample.api import ExampleViewSet
 
 router = SimpleRouter()
@@ -29,6 +29,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("health", health, name="health"),
     path("_error", trigger_error, name="_error"),
+    path("auth/login", LoginView.as_view(), name="auth-login"),
 ]
 
 urlpatterns += router.urls

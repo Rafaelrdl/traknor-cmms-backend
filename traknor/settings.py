@@ -13,26 +13,32 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+import environ  # biblioteca para leitura de variáveis de ambiente
+
+# Caminho base do projeto
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Carrega variáveis de ambiente do arquivo .env, quando presente
+env = environ.Env()
+if (BASE_DIR / ".env").exists():
+    environ.Env.read_env(BASE_DIR / ".env")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-^=!4o$4jhz_5bn2#16^&5df*vb%74g%oe=4qpb*h$f(c*d3%2&"
+# Chave secreta obtida do ambiente
+SECRET_KEY = env("SECRET_KEY", default="unsafe-secret-key")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG controlado via env
+DEBUG = env.bool("DEBUG", False)
 
-ALLOWED_HOSTS = ["localhost", "acme.localhost", "beta.localhost"]
+# Hosts permitidos para receber requisições
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
 
 
 # Application definition
 
-# Apps que vivem no schema público
-# Apps que vivem no schema público
 # Apps que vivem no schema público
 SHARED_APPS = (
     "tenancy",  # modelos Tenant e Domain
@@ -53,9 +59,13 @@ TENANT_APPS = (
 # Ordem final das apps
 INSTALLED_APPS = list(SHARED_APPS) + ["django_tenants"] + list(TENANT_APPS)
 
+# Ativa suporte a CORS
+INSTALLED_APPS += ["corsheaders"]
+
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
+    "django.middleware.security.SecurityMiddleware",  # garante headers de segurança
     "django_tenants.middleware.main.TenantMainMiddleware",  # resolve schema antes
+    "corsheaders.middleware.CorsMiddleware",  # precisa vir antes de CommonMiddleware
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -161,3 +171,57 @@ REST_FRAMEWORK = {
     # Handler que converte exceções em Problem Details
     "EXCEPTION_HANDLER": "core.api.exceptions.problem_exception_handler",
 }
+
+# Classes e limites de throttling globais
+REST_FRAMEWORK.update(
+    {
+        "DEFAULT_THROTTLE_CLASSES": [
+            "rest_framework.throttling.AnonRateThrottle",
+            "rest_framework.throttling.UserRateThrottle",
+            "rest_framework.throttling.ScopedRateThrottle",
+        ],
+        "DEFAULT_THROTTLE_RATES": {
+            "anon": env.str("THROTTLE_ANON", "60/min"),
+            "user": env.str("THROTTLE_USER", "120/min"),
+            "auth_login": env.str("THROTTLE_AUTH_LOGIN", "5/min"),
+        },
+    }
+)
+
+# Configurações de CORS
+CORS_ALLOW_CREDENTIALS = True  # necessário se houver cookies/sessão
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://localhost:5173",  # Vite
+        "http://localhost:3000",  # CRA
+    ],
+)
+CORS_EXPOSE_HEADERS = [
+    "Link",
+    "X-Total-Count",
+    "X-Total-Pages",
+    "X-Per-Page",
+    "X-Current-Page",
+]
+CORS_PREFLIGHT_MAX_AGE = 600  # tempo de cache do preflight
+
+# Headers e métodos adicionais permitidos
+from corsheaders.defaults import default_headers  # noqa: E402
+
+CORS_ALLOW_HEADERS = list(default_headers) + ["authorization"]
+CORS_ALLOW_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+
+# Configurações de segurança HTTP
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SAMESITE = "Lax"
+
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "same-origin"
