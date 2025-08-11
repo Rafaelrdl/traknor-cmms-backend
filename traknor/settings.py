@@ -57,6 +57,7 @@ TENANT_APPS = (
     "rest_framework",
     "sample",  # app de exemplo
     "sandbox",
+    "assets",  # modelos de estrutura e ativos
 )
 
 # Ordem final das apps

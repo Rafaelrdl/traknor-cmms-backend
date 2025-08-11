@@ -23,9 +23,13 @@ from .views import LoginView, health, trigger_error
 from sample.api import ExampleViewSet
 from django.conf import settings
 from accounts.api import MeView
+from assets.api import AssetViewSet, CompanyViewSet, LocationTreeView
 
 router = SimpleRouter()
 router.register("_example", ExampleViewSet, basename="example")
+router.register("companies", CompanyViewSet, basename="company")
+router.register("assets", AssetViewSet, basename="asset")
+router.register("equipment", AssetViewSet, basename="equipment")
 
 if settings.DEBUG:
     from sandbox.api import ExampleOwnedViewSet
@@ -38,6 +42,7 @@ urlpatterns = [
     path("_error", trigger_error, name="_error"),
     path("auth/login", LoginView.as_view(), name="auth-login"),
     path("users/me", MeView.as_view(), name="users-me"),
+    path("locations/tree", LocationTreeView.as_view(), name="locations-tree"),
 ]
 
 urlpatterns += router.urls
