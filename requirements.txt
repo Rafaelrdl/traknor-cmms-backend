@@ -1,0 +1,6 @@
+Django==4.2
+djangorestframework==3.14.0
+django-tenants==3.8.0
+psycopg2-binary==2.9.10
+pytest==8.4.1
+pytest-django==4.11.1
