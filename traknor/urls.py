@@ -17,10 +17,18 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from rest_framework.routers import SimpleRouter
 
-from .views import health
+from .views import health, trigger_error
+from sample.api import ExampleViewSet
+
+router = SimpleRouter()
+router.register("_example", ExampleViewSet, basename="example")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health", health, name="health"),
+    path("_error", trigger_error, name="_error"),
 ]
+
+urlpatterns += router.urls

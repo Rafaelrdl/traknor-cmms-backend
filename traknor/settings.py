@@ -150,3 +150,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Configurações globais do DRF
+REST_FRAMEWORK = {
+    # Renderer que aplica o envelope padronizado
+    "DEFAULT_RENDERER_CLASSES": ["core.api.renderers.EnvelopeJSONRenderer"],
+    # Paginação com metadados e headers personalizados
+    "DEFAULT_PAGINATION_CLASS": "core.api.pagination.EnvelopePageNumberPagination",
+    "PAGE_SIZE": 25,
+    # Handler que converte exceções em Problem Details
+    "EXCEPTION_HANDLER": "core.api.exceptions.problem_exception_handler",
+}
