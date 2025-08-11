@@ -21,9 +21,15 @@ from rest_framework.routers import SimpleRouter
 
 from .views import LoginView, health, trigger_error
 from sample.api import ExampleViewSet
+from django.conf import settings
 
 router = SimpleRouter()
 router.register("_example", ExampleViewSet, basename="example")
+
+if settings.DEBUG:
+    from sandbox.api import ExampleOwnedViewSet
+
+    router.register("sandbox/examples", ExampleOwnedViewSet, basename="sandbox-example")
 
 urlpatterns = [
     path("admin/", admin.site.urls),

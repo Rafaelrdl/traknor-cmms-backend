@@ -42,11 +42,13 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost"])
 # Apps que vivem no schema público
 SHARED_APPS = (
     "tenancy",  # modelos Tenant e Domain
+    "accounts",
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework.authtoken",
 )
 
 # Apps que existirão em cada tenant
@@ -54,6 +56,7 @@ TENANT_APPS = (
     "django.contrib.admin",
     "rest_framework",
     "sample",  # app de exemplo
+    "sandbox",
 )
 
 # Ordem final das apps
@@ -120,6 +123,10 @@ DOMAIN_MODEL = TENANT_DOMAIN_MODEL
 DATABASE_ROUTERS = ("django_tenants.routers.TenantSyncRouter",)
 
 
+# Modelo de usuário customizado
+AUTH_USER_MODEL = "accounts.User"
+
+
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
@@ -170,6 +177,10 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 25,
     # Handler que converte exceções em Problem Details
     "EXCEPTION_HANDLER": "core.api.exceptions.problem_exception_handler",
+    # Autenticação padrão via tokens
+    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication"],
+    # Permissão padrão exige usuário autenticado
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 # Classes e limites de throttling globais
