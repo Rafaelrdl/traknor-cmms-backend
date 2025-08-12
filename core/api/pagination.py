@@ -1,3 +1,6 @@
+"""
+Paginação customizada com envelope
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -5,8 +8,39 @@ from typing import Any, Dict
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.exceptions import NotFound
 
 from .links import build_link_header, update_query_params
+
+
+class EnvelopedPageNumberPagination(PageNumberPagination):
+    """
+    Paginação que retorna dados em formato envelopado
+    """
+    page_size_query_param = "per_page"
+    page_query_param = "page"
+    max_page_size = 100
+
+    def get_page_size(self, request):
+        """Limita o page_size ao máximo permitido"""
+        size = super().get_page_size(request)
+        if size and size > self.max_page_size:
+            size = self.max_page_size
+        return size
+
+    def get_paginated_response(self, data):
+        """Retorna resposta paginada com meta e links"""
+        if self.page.number > self.page.paginator.num_pages and self.page.paginator.num_pages != 0:
+            raise NotFound("Page out of range")
+            
+        return Response({
+            "count": self.page.paginator.count,
+            "page": self.page.number,
+            "page_size": self.get_page_size(self.request) or self.page.paginator.per_page,
+            "next": self.get_next_link(),
+            "previous": self.get_previous_link(),
+            "results": data,
+        })
 
 
 @dataclass

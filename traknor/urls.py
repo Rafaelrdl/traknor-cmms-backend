@@ -16,20 +16,19 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
-from rest_framework.routers import SimpleRouter
+from django.urls import path, include
+from core.api.routers import OptionalSlashRouter
 
 from .views import LoginView, health, trigger_error
 from sample.api import ExampleViewSet
 from django.conf import settings
 from accounts.api import MeView
 
-router = SimpleRouter()
+router = OptionalSlashRouter()
 router.register("_example", ExampleViewSet, basename="example")
 
 if settings.DEBUG:
     from sandbox.api import ExampleOwnedViewSet
-
     router.register("sandbox/examples", ExampleOwnedViewSet, basename="sandbox-example")
 
 urlpatterns = [

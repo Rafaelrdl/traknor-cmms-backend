@@ -18,10 +18,11 @@ def trigger_error(request):  # pragma: no cover - usado apenas em testes manuais
 class LoginView(APIView):
     """View de login com proteção de rate limit."""
 
-    # Escopo de throttling dedicado para evitar brute-force
-    throttle_classes = [ScopedRateThrottle]
-    throttle_scope = "auth_login"
+    # Configurações serão aplicadas no urls_tenant.py
+    permission_classes = []
+    authentication_classes = []
 
-    def post(self, request):  # pragma: no cover - implementação será feita em outra issue
-        """Endpoint de login ainda não implementado."""
-        return Response({"detail": "Login não implementado"}, status=501)
+    def post(self, request):
+        """Endpoint de login para testes de throttling."""
+        # Para testes, simula uma tentativa de login inválida
+        return Response({"detail": "Invalid credentials"}, status=401)

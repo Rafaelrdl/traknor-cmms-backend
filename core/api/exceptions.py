@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Dict, List
+from http import HTTPStatus
 
 from rest_framework import exceptions, status
 from rest_framework.response import Response
@@ -74,7 +75,7 @@ def problem_exception_handler(exc: Exception, context: Dict[str, Any]) -> Respon
             detail = str(detail)
         data = {
             "type": PROBLEM_TYPE_MAP.get(status_code, "about:blank"),
-            "title": status.HTTP_STATUS_CODES.get(status_code, "Error"),
+            "title": HTTPStatus(status_code).phrase,
             "status": status_code,
             "detail": detail,
             "instance": request.get_full_path() if request else "",

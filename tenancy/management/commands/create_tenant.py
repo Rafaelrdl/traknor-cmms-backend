@@ -14,14 +14,17 @@ class Command(BaseCommand):
         parser.add_argument("--primary", action="store_true", help="Define se o domínio é primário")
 
     def handle(self, *args, **options):
+        from django_tenants.utils import schema_context
+        
         TenantModel = get_tenant_model()
         DomainModel = get_tenant_domain_model()
 
-        tenant = TenantModel(schema_name=options["schema"], name=options["name"])
-        tenant.save()
-        DomainModel.objects.create(
-            domain=options["domain"],
-            tenant=tenant,
-            is_primary=options["primary"],
+        with schema_context('public'):
+            tenant = TenantModel(schema_name=options["schema"], name=options["name"])
+            tenant.save()
+            DomainModel.objects.create(
+                domain=options["domain"],
+                tenant=tenant,
+                is_primary=options["primary"],
         )
         self.stdout.write(self.style.SUCCESS(f"Tenant {tenant.schema_name} criado com sucesso"))

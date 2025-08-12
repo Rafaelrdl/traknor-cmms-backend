@@ -1,14 +1,15 @@
 import pytest
-
+from django_tenants.utils import schema_context
 from tenancy.models import Tenant, Domain
 
 
 @pytest.fixture
-def tenant() -> Tenant:
+def tenant(db) -> Tenant:
     """Cria um tenant para validar o tratamento de erros."""
-    tenant = Tenant(schema_name="acme", name="ACME Ltd.")
-    tenant.save()
-    Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
+    with schema_context('public'):
+        tenant = Tenant(schema_name="acme", name="ACME Ltd.")
+        tenant.save()
+        Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
     return tenant
 
 

@@ -6,11 +6,12 @@ from sample.models import SampleModel
 
 
 @pytest.fixture
-def tenant() -> Tenant:
+def tenant(db) -> Tenant:
     """Cria um tenant simples para os testes."""
-    tenant = Tenant(schema_name="acme", name="ACME Ltd.")
-    tenant.save()
-    Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
+    with schema_context('public'):
+        tenant = Tenant(schema_name="acme", name="ACME Ltd.")
+        tenant.save()
+        Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
     return tenant
 
 

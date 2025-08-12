@@ -11,9 +11,10 @@ from django_tenants.utils import schema_context
 @pytest.fixture
 def tenant(db):
     """Cria tenant básico para os testes de RBAC."""
-    tenant = Tenant(schema_name="acme", name="ACME")
-    tenant.save()
-    Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
+    with schema_context('public'):
+        tenant = Tenant(schema_name="acme", name="ACME")
+        tenant.save()
+        Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
     return tenant
 
 
@@ -165,9 +166,10 @@ def test_update_and_delete_permissions(client, tenant, users, examples):
 
 @pytest.mark.django_db
 def test_membership_other_tenant_denied(client, tenant, users):
-    other = Tenant(schema_name="oth", name="Other")
-    other.save()
-    Domain.objects.create(domain="oth.localhost", tenant=other, is_primary=True)
+    with schema_context('public'):
+        other = Tenant(schema_name="oth", name="Other")
+        other.save()
+        Domain.objects.create(domain="oth.localhost", tenant=other, is_primary=True)
     outsider = User.objects.create_user(username="outsider", password="pass")
     Membership.objects.create(user=outsider, tenant=other, role=Role.TECHNICIAN.value)
     token = Token.objects.create(user=outsider)

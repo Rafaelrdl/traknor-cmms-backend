@@ -10,9 +10,10 @@ from accounts.roles import Role
 @pytest.fixture
 def tenant(db):
     """Cria um tenant simples para os testes."""
-    tenant = Tenant(schema_name="acme", name="ACME Ltd.")
-    tenant.save()
-    Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
+    with schema_context('public'):
+        tenant = Tenant(schema_name="acme", name="ACME Ltd.")
+        tenant.save()
+        Domain.objects.create(domain="acme.localhost", tenant=tenant, is_primary=True)
     return tenant
 
 

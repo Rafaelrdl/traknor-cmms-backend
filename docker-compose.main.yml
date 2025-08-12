@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db_main:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: traknor
+      POSTGRES_USER: traknor
+      POSTGRES_PASSWORD: traknor
+    volumes:
+      - postgres_data_main:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 5s
+      retries: 5
+
+  app_main:
+    build: 
+      context: .
+      dockerfile: Dockerfile.main
+    env_file: .env.example
+    environment:
+      - POSTGRES_DB=traknor
+      - POSTGRES_USER=traknor
+      - POSTGRES_PASSWORD=traknor
+      - POSTGRES_HOST=db_main
+      - POSTGRES_PORT=5432
+    volumes:
+      - ./tests:/app/tests
+      - ./tenancy:/app/tenancy
+      - ./accounts:/app/accounts
+      - ./sandbox:/app/sandbox
+    ports:
+      - "8001:8000"
+    depends_on:
+      db_main:
+        condition: service_healthy
+
+volumes:
+  postgres_data_main:
